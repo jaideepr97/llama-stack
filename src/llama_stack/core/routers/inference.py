@@ -320,6 +320,7 @@ class InferenceRouter(Inference):
                                 "tool_calls_builder": {},
                                 "finish_reason": "stop",
                                 "logprobs_content_parts": [],
+                                "extra_text_parts": {},
                             }
                         current_choice_data = choices_data[idx]
 
@@ -349,6 +350,12 @@ class InferenceRouter(Inference):
                                             builder["function_arguments_parts"].append(
                                                 tool_call_delta.function.arguments
                                             )
+                            # Accumulate extra string fields from the delta (e.g. reasoning)
+                            delta_extra = getattr(delta, "model_extra", None) or {}
+                            for key, value in delta_extra.items():
+                                if isinstance(value, str) and value:
+                                    current_choice_data["extra_text_parts"].setdefault(key, []).append(value)
+
                         if choice_delta.finish_reason:
                             current_choice_data["finish_reason"] = choice_delta.finish_reason
 
@@ -408,10 +415,12 @@ class InferenceRouter(Inference):
                                         ),
                                     )
                                 )
+                    extra_text = {k: "".join(v) for k, v in choice_data["extra_text_parts"].items() if v}
                     message = OpenAIChatCompletionResponseMessage(
                         role="assistant",
                         content=content_str if content_str else None,
                         tool_calls=assembled_tool_calls if assembled_tool_calls else None,
+                        **extra_text,
                     )
                     logprobs_content = choice_data["logprobs_content_parts"]
                     final_logprobs = OpenAIChoiceLogprobs(content=logprobs_content) if logprobs_content else None

@@ -4600,6 +4600,7 @@ components:
       title: ListOpenAIChatCompletionResponse
       description: Response from listing OpenAI-compatible chat completions.
     OpenAIAssistantMessageParam:
+      additionalProperties: true
       description: A message containing the model's (assistant) response in an OpenAI-compatible chat completion request.
       properties:
         role:
@@ -4709,6 +4710,7 @@ components:
           - type: 'null'
           description: Function call details.
           title: OpenAIChatCompletionToolCallFunction
+      additionalProperties: true
       type: object
       title: OpenAIChatCompletionToolCall
       description: Tool call specification for OpenAI-compatible chat completion responses.
@@ -5448,6 +5450,7 @@ components:
       title: OpenAIChatCompletionChunk
       type: object
     OpenAIChoiceDelta:
+      additionalProperties: true
       description: A delta from an OpenAI-compatible chat completion streaming response.
       properties:
         content:
@@ -13051,6 +13054,7 @@ components:
             type: array
           - type: 'null'
           description: List of tool calls. Each tool call is an OpenAIChatCompletionToolCall object.
+      additionalProperties: true
       type: object
       title: OpenAIAssistantMessageParam
       description: A message containing the model's (assistant) response in an OpenAI-compatible chat completion request.
@@ -13084,6 +13088,7 @@ components:
             type: array
           - type: 'null'
           description: List of tool calls. Each tool call is an OpenAIChatCompletionToolCall object.
+      additionalProperties: true
       type: object
       title: OpenAIAssistantMessageParam
       description: A message containing the model's (assistant) response in an OpenAI-compatible chat completion request.
@@ -13163,6 +13168,7 @@ components:
             type: object
           - type: 'null'
           description: Audio response data when using audio output modality.
+      additionalProperties: true
       type: object
       title: OpenAIChatCompletionResponseMessage
       description: An assistant message returned in a chat completion response.

@@ -666,11 +666,14 @@ class StreamingResponseOrchestrator:
         next_turn_messages = messages.copy()
 
         for choice in current_response.choices:
-            # Convert response message to input message format for multi-turn
+            # Convert response message to input message format for multi-turn,
+            # forwarding any extra fields (e.g. reasoning) from the response message
+            extra = getattr(choice.message, "model_extra", None) or {}
             next_turn_messages.append(
                 OpenAIAssistantMessageParam(
                     content=choice.message.content,
                     tool_calls=choice.message.tool_calls,
+                    **extra,
                 )
             )
             logger.debug(f"Choice message content: {choice.message.content}")
@@ -1182,6 +1185,10 @@ class StreamingResponseOrchestrator:
                 sequence_number=self.sequence_number,
             )
 
+        extra_fields: dict[str, Any] = {}
+        if reasoning_text_accumulated:
+            extra_fields["reasoning"] = "".join(reasoning_text_accumulated)
+
         yield ChatCompletionResult(
             response_id=chat_response_id,
             content=chat_response_content,
@@ -1194,6 +1201,7 @@ class StreamingResponseOrchestrator:
             content_part_emitted=content_part_emitted,
             logprobs=OpenAIChoiceLogprobs(content=chat_response_logprobs) if chat_response_logprobs else None,
             service_tier=chunk_service_tier,
+            extra_fields=extra_fields,
         )
 
     def _build_chat_completion(self, result: ChatCompletionResult) -> OpenAIChatCompletion:
@@ -1207,6 +1215,7 @@ class StreamingResponseOrchestrator:
         assistant_message = OpenAIChatCompletionResponseMessage(
             content=result.content_text,
             tool_calls=tool_calls,
+            **result.extra_fields,
         )
         return OpenAIChatCompletion(
             id=result.response_id,

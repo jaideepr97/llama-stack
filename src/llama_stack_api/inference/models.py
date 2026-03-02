@@ -13,7 +13,7 @@ using Pydantic with Field descriptions for OpenAPI schema generation.
 from enum import Enum, StrEnum
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing_extensions import TypedDict
 
 from llama_stack_api.common.content_types import InterleavedContent
@@ -379,6 +379,8 @@ class OpenAIChatCompletionToolCallFunction(BaseModel):
 class OpenAIChatCompletionToolCall(BaseModel):
     """Tool call specification for OpenAI-compatible chat completion responses."""
 
+    model_config = ConfigDict(extra="allow")
+
     index: int | None = Field(default=None, ge=0, description="Index of the tool call in the list.")
     id: str | None = Field(default=None, description="Unique identifier for the tool call.")
     type: Literal["function"] = Field(
@@ -390,6 +392,8 @@ class OpenAIChatCompletionToolCall(BaseModel):
 @json_schema_type
 class OpenAIAssistantMessageParam(BaseModel):
     """A message containing the model's (assistant) response in an OpenAI-compatible chat completion request."""
+
+    model_config = ConfigDict(extra="allow")
 
     role: Literal["assistant"] = Field(
         default="assistant", description="Must be 'assistant' to identify this as the model's response."
@@ -587,6 +591,8 @@ class OpenAIChoiceLogprobs(BaseModel):
 class OpenAIChoiceDelta(BaseModel):
     """A delta from an OpenAI-compatible chat completion streaming response."""
 
+    model_config = ConfigDict(extra="allow")
+
     content: str | None = Field(default=None, description="The content of the delta.")
     refusal: str | None = Field(default=None, description="The refusal of the delta.")
     role: str | None = Field(default=None, description="The role of the delta.")
@@ -620,6 +626,8 @@ class OpenAIChunkChoice(BaseModel):
 @json_schema_type
 class OpenAIChatCompletionResponseMessage(BaseModel):
     """An assistant message returned in a chat completion response."""
+
+    model_config = ConfigDict(extra="allow")
 
     role: Literal["assistant"] = Field(
         default="assistant", description="The role of the message author, always 'assistant' in responses."

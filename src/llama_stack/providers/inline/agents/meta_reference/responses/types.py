@@ -4,8 +4,8 @@
 # This source code is licensed under the terms described in the LICENSE file in
 # the root directory of this source tree.
 
-from dataclasses import dataclass
-from typing import cast
+from dataclasses import dataclass, field
+from typing import Any, cast
 
 from openai.types.chat import ChatCompletionToolParam
 from pydantic import BaseModel
@@ -59,6 +59,7 @@ class ChatCompletionResult:
     content_part_emitted: bool  # Tracking state
     logprobs: list[OpenAITokenLogProb] | None = None
     service_tier: str | None = None  # The actual service tier used (may differ from input)
+    extra_fields: dict[str, Any] = field(default_factory=dict)
 
     @property
     def content_text(self) -> str:

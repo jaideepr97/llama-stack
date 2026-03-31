@@ -708,7 +708,7 @@ class StreamingResponseOrchestrator:
             )
 
     def _separate_tool_calls(
-        self, current_response: OpenAIChatCompletionResponseMessage, messages, reasoning_content: str | None = None
+        self, current_response: OpenAIChatCompletion, messages, reasoning_content: str | None = None
     ) -> tuple[list, list, list, list]:
         """Separate tool calls into function and non-function categories."""
         function_tool_calls = []
@@ -721,16 +721,22 @@ class StreamingResponseOrchestrator:
             # Use AssistantMessageWithReasoning if reasoning was present in the
             # CC response. Providers will be check for this AssistantMessageWithReasoning
             # message
+            standard_tool_calls: list[OpenAIChatCompletionToolCall] | None = (
+                [tc for tc in choice.message.tool_calls if isinstance(tc, OpenAIChatCompletionToolCall)]
+                if choice.message.tool_calls
+                else None
+            )
+            message: OpenAIAssistantMessageParam
             if reasoning_content:
                 message = AssistantMessageWithReasoning(
                     content=choice.message.content,
-                    tool_calls=choice.message.tool_calls,
+                    tool_calls=standard_tool_calls,
                     reasoning_content=reasoning_content,
                 )
             else:
                 message = OpenAIAssistantMessageParam(
                     content=choice.message.content,
-                    tool_calls=choice.message.tool_calls,
+                    tool_calls=standard_tool_calls,
                 )
             next_turn_messages.append(message)
             logger.debug("Choice message content", content=choice.message.content)
@@ -740,6 +746,8 @@ class StreamingResponseOrchestrator:
                 executed_tool_calls: list = []
                 has_deferred_or_denied = False
                 for tool_call in choice.message.tool_calls:
+                    if not isinstance(tool_call, OpenAIChatCompletionToolCall):
+                        continue
                     if is_function_tool_call(tool_call, self.ctx.response_tools):
                         function_tool_calls.append(tool_call)
                         executed_tool_calls.append(tool_call)
@@ -758,6 +766,8 @@ class StreamingResponseOrchestrator:
                         )
                         function_tool_calls.append(tool_call)
                         executed_tool_calls.append(tool_call)
+                    elif not tool_call.function:
+                        continue
                     else:
                         if self._approval_required(tool_call.function.name):
                             approval_response = self.ctx.approval_response(
